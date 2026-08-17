@@ -13,6 +13,17 @@ products, orders, and inventory through BigCommerce's Admin API (v3).
 - **Scheduled or on-demand** — configurable pull/push intervals, with a
   guard against a crashed run blocking future syncs.
 
+## Installation
+
+```bash
+bench get-app https://github.com/alaiy-tech/alaiy_os_connector_bigcommerce.git
+bench --site <your-site> install-app alaiy_os_connector_bigcommerce
+bench --site <your-site> migrate
+bench build
+```
+
+Requires [Alaiy OS](https://github.com/alaiy-tech/alaiy_os) and ERPNext already installed on the site.
+
 ## Setup
 
 1. In BigCommerce: **Settings → API → API Accounts**, create a Legacy API
