@@ -28,8 +28,9 @@ products, orders, and inventory through BigCommerce's Admin API (v3).
 
 ## Roadmap
 
-Product import, order import, and pushing inventory/price updates back to
-BigCommerce are planned next.
+Product and variant import (with categories, brands, and stock) is live.
+Order import, and pushing inventory/price updates back to BigCommerce,
+are planned next.
 
 ## License
 
