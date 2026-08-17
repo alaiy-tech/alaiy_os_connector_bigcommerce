@@ -26,7 +26,7 @@ function alaiy_pill(value, colors) {
 	</span>`;
 }
 
-frappe.listview_settings["Template Sync Log"] = {
+frappe.listview_settings["BigCommerce Sync Log"] = {
 	get_indicator(doc) {
 		return [
 			__(doc.status),

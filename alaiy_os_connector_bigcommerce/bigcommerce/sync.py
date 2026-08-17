@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Alaiy and contributors
 # For license information, please see license.txt
 """
-The actual sync work + the Template Sync Log lifecycle helpers every sync
+The actual sync work + the BigCommerce Sync Log lifecycle helpers every sync
 shares. run_pull_sync / run_push_sync are the two example jobs; replace their
 bodies with real logic but keep the log-create → running → success/failed
 bookkeeping so the connector card and Logs list stay accurate.
@@ -17,10 +17,10 @@ def get_or_create_log(sync_type, trigger, log_name=None):
     layer pre-created it so it shows as 'queued' immediately) reuse it;
     otherwise create a fresh one. Newly created logs start as 'queued'.
     """
-    if log_name and frappe.db.exists("Template Sync Log", log_name):
-        return frappe.get_doc("Template Sync Log", log_name)
+    if log_name and frappe.db.exists("BigCommerce Sync Log", log_name):
+        return frappe.get_doc("BigCommerce Sync Log", log_name)
 
-    log = frappe.new_doc("Template Sync Log")
+    log = frappe.new_doc("BigCommerce Sync Log")
     log.sync_type = sync_type
     log.trigger = trigger
     log.status = "queued"
@@ -50,24 +50,30 @@ def _run(sync_type, trigger, log_name, worker):
     _mark_running(log)
     try:
         worker(log)
-        _mark_finished(log, "success")
+        # A worker that isolates per-row failures (rather than raising) never
+        # hits the except below, so a run with real failures would otherwise
+        # still be marked "success" here -- check the counter the worker
+        # itself already saved, same convention as every other connector's
+        # sync.py in this codebase.
+        if log.items_failed:
+            _mark_finished(log, "failed", log.error_message)
+        else:
+            _mark_finished(log, "success")
     except Exception:
         _mark_finished(log, "failed", frappe.get_traceback())
         frappe.log_error(
-            title=f"Template connector: {sync_type} sync failed",
+            title=f"BigCommerce connector: {sync_type} sync failed",
             message=frappe.get_traceback(),
         )
         raise
 
 
 def run_pull_sync(trigger="scheduled", log_name=None):
-    """Pull data from the external API into Alaiy OS. TODO: implement."""
+    """Pull products from BigCommerce into Alaiy OS."""
+    from alaiy_os_connector_bigcommerce.bigcommerce.products import pull_products
+
     def worker(log):
-        # from alaiy_os_connector_template.template.client import TemplateClient
-        # client = TemplateClient()
-        # data = client.get("...")
-        # ... upsert into ERPNext, updating log counters as you go ...
-        pass
+        pull_products(log)
 
     _run("pull", trigger, log_name, worker)
 
